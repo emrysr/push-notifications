@@ -1,0 +1,3 @@
+{$DOMAIN} {
+    reverse_proxy webpush:8080
+}

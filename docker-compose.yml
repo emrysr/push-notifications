@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  webpush:
+    image: ghcr.io/mpizenberg/go-notify-server:latest
+    container_name: webpush_service
+    restart: unless-stopped
+    expose:
+      - "8080"
+    ports:
+      # Expose locally for HTTP testing (e.g. http://localhost:8080)
+      - "8080:8080"
+    environment:
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_CONTACT=mailto:${VAPID_CONTACT_EMAIL}
+      - ADMIN_KEY=${ADMIN_SECRET_KEY}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - DB_PATH=/data/notify.db
+    volumes:
+      - webpush_data:/data
+
+  # Reverse Proxy for HTTPS (Required for Web Push outside localhost)
+  caddy:
+    image: caddy:2-alpine
+    container_name: webpush_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN_NAME:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - webpush
+
+volumes:
+  webpush_data:
+  caddy_data:
+  caddy_config:
