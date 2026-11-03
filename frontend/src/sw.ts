@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching'
+import { storeNotification } from './push-cache'
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>
@@ -35,15 +36,25 @@ self.addEventListener('push', (event: PushEvent) => {
   const payload: PushPayload = raw.notification ?? raw
 
   const title = payload.title ?? 'New notification'
+  const url = payload.data?.url as string | undefined
+
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: payload.body,
-      icon: payload.icon ?? '/icons/icon-192.png',
-      badge: payload.badge,
-      tag: payload.tag,
-      silent: payload.silent ?? undefined,
-      data: payload.data ?? {},
-    }),
+    (async () => {
+      await self.registration.showNotification(title, {
+        body: payload.body,
+        icon: payload.icon ?? '/icons/icon-192.png',
+        badge: payload.badge,
+        tag: payload.tag,
+        silent: payload.silent ?? undefined,
+        data: payload.data ?? {},
+      })
+
+      // Written here, not in notificationclick, so it's available even if the
+      // click opens a brand-new window with no state of its own.
+      if (url) {
+        await storeNotification(url, { title, body: payload.body })
+      }
+    })(),
   )
 })
 
@@ -64,12 +75,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 
       if (existing) {
         await existing.focus()
-        existing.postMessage({
-          type: 'push-navigate',
-          url,
-          title: event.notification.title,
-          body: event.notification.body,
-        })
+        existing.postMessage({ type: 'push-navigate', url })
         return
       }
 

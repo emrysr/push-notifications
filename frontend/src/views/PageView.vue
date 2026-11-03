@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { lastNotification } from '../store/notification'
+import { getNotification, type StoredNotification } from '../push-cache'
 
 const route = useRoute()
+const content = ref<StoredNotification | null>(null)
 
-const matchesCurrentPath = computed(
-  () => lastNotification.value && lastNotification.value.url === route.fullPath,
+watch(
+  () => route.fullPath,
+  async (path) => {
+    content.value = await getNotification(path)
+  },
+  { immediate: true },
 )
 </script>
 
@@ -20,9 +25,9 @@ const matchesCurrentPath = computed(
         </ul>
       </nav>
 
-      <div v-if="matchesCurrentPath" class="box">
-        <h1 class="title is-4">{{ lastNotification?.title }}</h1>
-        <p class="content">{{ lastNotification?.body }}</p>
+      <div v-if="content" class="box">
+        <h1 class="title is-4">{{ content.title }}</h1>
+        <p class="content">{{ content.body }}</p>
       </div>
 
       <div v-else class="notification is-light">

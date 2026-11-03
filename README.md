@@ -87,6 +87,13 @@ cd .. && docker compose up -d frontend
 * `frontend` → `http://localhost:4173` (nginx serving `frontend/dist`; local testing only — not
   how it's deployed in production, see [`frontend/README.md`](frontend/README.md))
 
+**GitHub Pages vs. local/ngrok**: the live GitHub Pages deployment can only work end-to-end
+(subscribe/send) once `webpush`/`backend` are hosted somewhere with a stable public URL and the
+GitHub Actions repo variables point at it — see the note at the end of ["Deploying to GitHub
+Pages"](frontend/README.md#deploying-to-github-pages). Until then, use [ngrok to test from a
+mobile device](frontend/README.md#testing-from-a-mobile-device-ngrok) instead; the app shows an
+in-page reminder of this.
+
 ## Backend API
 
 The FastAPI backend (`backend/app/main.py`) exposes:
