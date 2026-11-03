@@ -31,6 +31,12 @@
         <router-link to="/send">Send Notification</router-link> to trigger a test push — it'll
         arrive even if this app is closed, and tapping it should open straight to the linked page.
       </p>
+      <p>
+        <strong>On iPhone/iPad:</strong> notifications only work after installing — tap the
+        Share icon in Safari, choose <strong>Add to Home Screen</strong>, then open the app from
+        your Home Screen (not from Safari) before subscribing. A plain Safari tab can't receive
+        push notifications at all.
+      </p>
     </div>
   </footer>
 </template>
