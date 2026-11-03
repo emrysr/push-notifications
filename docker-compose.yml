@@ -20,6 +20,36 @@ services:
     volumes:
       - webpush_data:/data
 
+  backend:
+    build:
+      context: ./backend
+    container_name: fastapi_backend
+    restart: unless-stopped
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - WEBPUSH_URL=http://webpush:8080
+      - ADMIN_KEY=${ADMIN_SECRET_KEY}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+    depends_on:
+      - webpush
+
+  # Serves frontend/dist locally. Not used in production — GitHub Pages hosts
+  # the real deployment. Rebuild dist with `npm run build` in frontend/ after
+  # changes; this container reads straight from the mounted volume, no
+  # image rebuild or restart needed.
+  frontend:
+    image: nginx:alpine
+    container_name: frontend_static
+    restart: unless-stopped
+    ports:
+      - "4173:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
   # Reverse Proxy for HTTPS (Required for Web Push outside localhost)
   caddy:
     image: caddy:2-alpine
