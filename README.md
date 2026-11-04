@@ -20,18 +20,16 @@ Firebase.
   are strictly required by browsers for Web Push functionality outside of `localhost`. Proxies the
   configured `DOMAIN_NAME` to the `webpush` service (see `Caddyfile`).
 
-```
-┌─────────────┐   subscribe / unsubscribe   ┌──────────────┐
-│ frontend PWA │ ───────────────────────────▶│   webpush    │
-│  (Vue PWA)   │                             │ go-notify-   │
-└─────────────┘◀─────────── push ────────────│   server     │
-       ▲                                      └──────────────┘
-       │ notification click (deep link)              ▲
-       │                                              │ POST /notify (admin key)
-       │                                     ┌──────────────┐
-       └─────────── triggered by ───────────│   backend    │
-                                              │  (FastAPI)   │
-                                              └──────────────┘
+```mermaid
+flowchart LR
+    frontend["frontend PWA<br/>(Vue PWA)"]
+    webpush["webpush<br/>(go-notify-server)"]
+    backend["backend<br/>(FastAPI)"]
+
+    frontend -- "subscribe / unsubscribe" --> webpush
+    webpush -- "push" --> frontend
+    backend -- "POST /notify (admin key)" --> webpush
+    backend -. "triggers notification click (deep link)" .-> frontend
 ```
 
 ---
